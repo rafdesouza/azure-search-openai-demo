@@ -52,6 +52,7 @@ param azureOpenAiCustomUrl string = ''
 param azureOpenAiApiVersion string = ''
 @secure()
 param azureOpenAiApiKey string = ''
+param azureOpenAiDisableKeys bool = true
 param openAiServiceName string = ''
 param openAiResourceGroupName string = ''
 
@@ -69,7 +70,8 @@ param cosmosDbLocation string = ''
 param cosmosDbAccountName string = ''
 param cosmosDbThroughput int = 400
 param chatHistoryDatabaseName string = 'chat-database'
-param chatHistoryContainerName string = 'chat-history'
+param chatHistoryContainerName string = 'chat-history-v2'
+param chatHistoryVersion string = 'cosmosdb-v2'
 
 // https://learn.microsoft.com/azure/ai-services/openai/concepts/models?tabs=python-secure%2Cstandard%2Cstandard-chat-completions#standard-deployment-model-availability
 @description('Location for the OpenAI resource group')
@@ -90,7 +92,7 @@ param chatHistoryContainerName string = 'chat-history'
     type: 'location'
   }
 })
-param openAiResourceGroupLocation string
+param openAiLocation string
 
 param openAiSkuName string = 'S0'
 
@@ -374,6 +376,7 @@ var appEnvVariables = {
   AZURE_COSMOSDB_ACCOUNT: (useAuthentication && useChatHistoryCosmos) ? cosmosDb.outputs.name : ''
   AZURE_CHAT_HISTORY_DATABASE: chatHistoryDatabaseName
   AZURE_CHAT_HISTORY_CONTAINER: chatHistoryContainerName
+  AZURE_CHAT_HISTORY_VERSION: chatHistoryVersion
   // Shared by all OpenAI deployments
   OPENAI_HOST: openAiHost
   AZURE_OPENAI_EMB_MODEL_NAME: embedding.modelName
@@ -585,7 +588,7 @@ module openAi 'br/public:avm/res/cognitive-services/account:0.7.2' = if (isAzure
   scope: openAiResourceGroup
   params: {
     name: !empty(openAiServiceName) ? openAiServiceName : '${abbrs.cognitiveServicesAccounts}${resourceToken}'
-    location: openAiResourceGroupLocation
+    location: openAiLocation
     tags: tags
     kind: 'OpenAI'
     customSubDomainName: !empty(openAiServiceName)
@@ -598,7 +601,7 @@ module openAi 'br/public:avm/res/cognitive-services/account:0.7.2' = if (isAzure
     }
     sku: openAiSkuName
     deployments: openAiDeployments
-    disableLocalAuth: true
+    disableLocalAuth: azureOpenAiDisableKeys
   }
 }
 
@@ -798,26 +801,31 @@ module cosmosDb 'br/public:avm/res/document-db/database-account:0.6.1' = if (use
         containers: [
           {
             name: chatHistoryContainerName
+            kind: 'MultiHash'
             paths: [
               '/entra_oid'
+              '/session_id'
             ]
             indexingPolicy: {
               indexingMode: 'consistent'
               automatic: true
               includedPaths: [
                 {
-                  path: '/*'
+                  path: '/entra_oid/?'
+                }
+                {
+                  path: '/session_id/?'
+                }
+                {
+                  path: '/timestamp/?'
+                }
+                {
+                  path: '/type/?'
                 }
               ]
               excludedPaths: [
                 {
-                  path: '/title/?'
-                }
-                {
-                  path: '/answers/*'
-                }
-                {
-                  path: '/"_etag"/?'
+                  path: '/*'
                 }
               ]
             }
@@ -1071,6 +1079,7 @@ var openAiPrivateEndpointConnection = (isAzureOpenAiHost && deployAzureOpenAi &&
         resourceIds: concat(
           [openAi.outputs.resourceId],
           useGPT4V ? [computerVision.outputs.resourceId] : [],
+          useMediaDescriberAzureCU ? [contentUnderstanding.outputs.resourceId] : [],
           !useLocalPdfParser ? [documentIntelligence.outputs.resourceId] : []
         )
       }
@@ -1094,7 +1103,7 @@ var otherPrivateEndpointConnections = (usePrivateEndpoint && deploymentTarget ==
         resourceIds: [backend.outputs.id]
       }
       {
-        groupId: 'cosmosdb'
+        groupId: 'sql'
         dnsZoneName: 'privatelink.documents.azure.com'
         resourceIds: (useAuthentication && useChatHistoryCosmos) ? [cosmosDb.outputs.resourceId] : []
       }
@@ -1208,6 +1217,7 @@ output AZURE_SEARCH_SERVICE_ASSIGNED_USERID string = searchService.outputs.princ
 output AZURE_COSMOSDB_ACCOUNT string = (useAuthentication && useChatHistoryCosmos) ? cosmosDb.outputs.name : ''
 output AZURE_CHAT_HISTORY_DATABASE string = chatHistoryDatabaseName
 output AZURE_CHAT_HISTORY_CONTAINER string = chatHistoryContainerName
+output AZURE_CHAT_HISTORY_VERSION string = chatHistoryVersion
 
 output AZURE_STORAGE_ACCOUNT string = storage.outputs.name
 output AZURE_STORAGE_CONTAINER string = storageContainerName
