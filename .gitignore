@@ -54,6 +54,7 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 cover/
+coverage_report.html
 
 # Translations
 *.mo
@@ -146,6 +147,8 @@ cython_debug/
 npm-debug.log*
 node_modules
 static/
+
+app/functions/*/prepdocslib/
 
 data/**/*.md5
 

@@ -8,8 +8,7 @@ You should set these values before running `azd up`. Once you've set them, retur
 * [OpenAI resource](#openai-resource)
 * [Azure AI Search resource](#azure-ai-search-resource)
 * [Azure App Service Plan and App Service resources](#azure-app-service-plan-and-app-service-resources)
-* [Azure Application Insights and related resources](#azure-application-insights-and-related-resources)
-* [Azure Computer Vision resources](#azure-computer-vision-resources)
+* [Azure AI Vision resources](#azure-ai-vision-resources)
 * [Azure Document Intelligence resource](#azure-document-intelligence-resource)
 * [Azure Speech resource](#azure-speech-resource)
 * [Other Azure resources](#other-azure-resources)
@@ -72,18 +71,12 @@ You can also customize the search service (new or existing) for non-English sear
 1. Run `azd env set AZURE_APP_SERVICE {Name of existing Azure App Service}`.
 1. Run `azd env set AZURE_APP_SERVICE_SKU {SKU of Azure App Service, defaults to B1}`.
 
-## Azure Application Insights and related resources
+## Azure AI Vision resources
 
-1. Run `azd env set AZURE_APPLICATION_INSIGHTS {Name of existing Azure App Insights}`.
-1. Run `azd env set AZURE_APPLICATION_INSIGHTS_DASHBOARD {Name of existing Azure App Insights Dashboard}`.
-1. Run `azd env set AZURE_LOG_ANALYTICS {Name of existing Azure Log Analytics Workspace Name}`.
-
-## Azure Computer Vision resources
-
-1. Run `azd env set AZURE_COMPUTER_VISION_SERVICE {Name of existing Azure Computer Vision Service Name}`
-1. Run `azd env set AZURE_COMPUTER_VISION_RESOURCE_GROUP {Name of existing Azure Computer Vision Resource Group Name}`
-1. Run `azd env set AZURE_COMPUTER_VISION_LOCATION {Name of existing Azure Computer Vision Location}`
-1. Run `azd env set AZURE_COMPUTER_VISION_SKU {SKU of Azure Computer Vision service, defaults to F0}`
+1. Run `azd env set AZURE_VISION_SERVICE {Name of existing Azure AI Vision Service Name}`
+1. Run `azd env set AZURE_VISION_RESOURCE_GROUP {Name of existing Azure AI Vision Resource Group Name}`
+1. Run `azd env set AZURE_VISION_LOCATION {Name of existing Azure AI Vision Location}`
+1. Run `azd env set AZURE_VISION_SKU {SKU of Azure AI Vision service, defaults to F0}`
 
 ## Azure Document Intelligence resource
 
